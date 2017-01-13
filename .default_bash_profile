@@ -1,0 +1,46 @@
+# Utility for forcepush alias
+function git_branch_name {
+  git rev-parse --abbrev-ref HEAD
+}
+
+# Colored prompt with Git status
+function parse_git_branch {
+  git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e "s/* \(.*\)/(\1$(parse_git_dirty))/"
+}
+
+function parse_git_dirty {
+  [[ $(git status 2> /dev/null | tail -n1) != "nothing to commit, working tree clean" ]] && echo "*"
+}
+
+RED="\[\033[0;31m\]"
+YELLOW="\[\033[0;33m\]"
+GREEN="\[\033[0;32m\]"
+WHITE="\[\033[0;37m\]"
+
+PS1="$RED\w$YELLOW\$(parse_git_branch)$WHITE ➜ "
+
+# Default editor from console
+export EDITOR="atom --wait"
+export GIT_EDITOR="atom --wait"
+
+# Git reading
+alias gs='git status'
+alias gc='git commit -a -v '
+alias gd='git diff'
+alias glog='git log --no-merges --relative-date'
+alias gl="git log --graph --pretty=format:'%Cred%h%Creset %Cblue%an:%Creset %s - %C(yellow)%d%Creset %Cgreen(%cr)%Creset' --abbrev-commit --date=relative"
+alias gbranches="git for-each-ref refs/heads --format='%(align:70)%(refname:short)%(end) %(committerdate:iso8601) (%(committerdate:relative))' --sort -committerdate | head -n30"
+alias gfiles='git show --pretty="format:" --name-only'
+
+# Git writing
+alias gcut='git add . && git stash'
+alias gpaste='git stash apply'
+alias gpull='git checkout master && git pull --rebase origin master'
+alias forcepush='git push --force-with-lease origin $(git_branch_name):$(git_branch_name)'
+alias glast='gc --amend -C HEAD'
+
+alias ..='cd ..'
+alias rtest='dev test --include-branch-commits'
+
+# Home specific
+alias home_show_all='rake dev:home:show_all && HOME_SHOW_ALL=true dev server'
